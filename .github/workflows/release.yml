@@ -1,29 +1,42 @@
 name: Release
-on: workflow_dispatch
 
-permissions: write-all
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build-android:
     uses: ./.github/workflows/android.yml
+
   build-ios:
     uses: ./.github/workflows/ios.yml
- 
+
   Releaser:
-    needs: [build-android, build-ios]
+    needs:
+      - build-android
+      - build-ios
+
     runs-on: ubuntu-latest
+
     steps:
       - name: Download Android Build
-        uses: actions/download-artifact@main
+        uses: actions/download-artifact@v4
         with:
           name: Codename Engine Android
           path: ${{ github.workspace }}
 
       - name: Download iOS Build
-        uses: actions/download-artifact@main
+        uses: actions/download-artifact@v4
         with:
           name: Codename Engine iOS
           path: ${{ github.workspace }}
+
+      - name: List Release Files
+        run: |
+          echo "Files to release:"
+          find "${{ github.workspace }}" -maxdepth 1 -type f -print
 
       - name: Publish The Release
         uses: softprops/action-gh-release@v2
